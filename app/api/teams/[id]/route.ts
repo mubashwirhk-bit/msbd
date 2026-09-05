@@ -1,32 +1,26 @@
-import prisma from '@/lib/prisma';
-import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
 
-// GET /api/teams/:id
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+const prisma = new PrismaClient();
+
+export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
-    const id = parseInt(params.id);
     const team = await prisma.team.findUnique({
-      where: { id },
+      where: { id: parseInt(params.id) },
     });
 
     if (!team) {
-      return NextResponse.json(
-        { success: false, error: 'Team not found' },
+      return new Response(
+        JSON.stringify({ success: false, message: 'Team not found' }),
         { status: 404 }
       );
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        data: team,
-        message: 'Team fetched successfully',
-      },
-      { status: 200 }
-    );
+    return new Response(JSON.stringify({ success: true, data: team }), {
+      status: 200,
+    });
   } catch (error) {
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch team' },
+    return new Response(
+      JSON.stringify({ success: false, message: 'Internal server error' }),
       { status: 500 }
     );
   }
